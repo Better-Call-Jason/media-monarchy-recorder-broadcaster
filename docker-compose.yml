@@ -31,5 +31,10 @@ services:
 
 volumes:
   recordings:
-  sorted_recordings:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DOCKER_PWD:-${PWD:-$(pwd)}}/storage/recordings
   radio_logs:
+    driver: local

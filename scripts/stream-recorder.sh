@@ -11,6 +11,7 @@ export TZ="America/Denver"
 
 mkdir -p $RECORDING_DIR
 exec 1> >(tee -a /var/log/radio/recorder.log) 2>&1
+
 # Function to check if stream is available
 check_stream_available() {
     # Just try to establish a connection without reading data
@@ -61,7 +62,8 @@ seconds_until_next_hour() {
 # Function to do the actual recording
 record_stream() {
     local duration=$1
-    local filename=$2
+    local timestamp=$(date +%s)
+    local filename="${timestamp}.mp3"
     
     echo "$(date) - Starting recording for $duration seconds to $filename"
     
@@ -106,17 +108,16 @@ while true; do
     fi
 
     current_minute=$(date +%M)
-    current_hour=$(date +%H)
     
     if [[ $current_minute -eq 0 ]]; then
         # At the start of an hour - do full hour recording
         echo "$(date) - Starting full hour recording"
-        record_stream 3600 "$(date +\%Y\%m\%d_\%H\%M).mp3"
+        record_stream 3600
     else
         # Partial hour - record until next hour
         seconds_to_next=$(seconds_until_next_hour)
         echo "$(date) - Recording partial hour ($seconds_to_next seconds until next hour)"
-        record_stream $seconds_to_next "$(date +\%Y\%m\%d_\%H\%M)_partial.mp3"
+        record_stream $seconds_to_next
     fi
 
     # Small sleep to prevent potential rapid-fire recordings

@@ -21,6 +21,7 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 RUN mkdir -p /recordings /var/log/radio /config && \
     chown -R icecast2:icecast2 /recordings /var/log/radio /config && \
     chmod -R 755 /var/log/radio && \
+    chmod -R 775 /recordings && \
     touch /var/log/radio/recorder.log && \
     chown icecast2:icecast2 /var/log/radio/recorder.log && \
     chmod 644 /var/log/radio/recorder.log
@@ -31,7 +32,5 @@ RUN chmod +x /app/stream-recorder.sh && \
 
 USER icecast2
 WORKDIR /app
-
-VOLUME ["/recordings", "/var/log/radio", "/config"]
 
 CMD ["./stream-recorder.sh"]
