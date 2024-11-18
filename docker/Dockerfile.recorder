@@ -1,0 +1,37 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/Denver
+
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    tzdata \
+    jq \
+    netcat \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create icecast2 user and group
+RUN groupadd -g 8000 icecast2 && \
+    useradd -u 8000 -g icecast2 -m -d /var/lib/icecast2 icecast2
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Create directories and set permissions
+RUN mkdir -p /recordings /var/log/radio /config && \
+    chown -R icecast2:icecast2 /recordings /var/log/radio /config && \
+    chmod -R 755 /var/log/radio && \
+    touch /var/log/radio/recorder.log && \
+    chown icecast2:icecast2 /var/log/radio/recorder.log && \
+    chmod 644 /var/log/radio/recorder.log
+
+COPY scripts/stream-recorder.sh /app/
+RUN chmod +x /app/stream-recorder.sh && \
+    chown icecast2:icecast2 /app/stream-recorder.sh
+
+USER icecast2
+WORKDIR /app
+
+VOLUME ["/recordings", "/var/log/radio", "/config"]
+
+CMD ["./stream-recorder.sh"]

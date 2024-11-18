@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<icecast>
+    <location>Earth</location>
+    <admin>admin@example.com</admin>
+    
+    <limits>
+        <clients>100</clients>
+        <sources>2</sources>
+        <queue-size>524288</queue-size>
+        <client-timeout>30</client-timeout>
+        <source-timeout>30</source-timeout>
+        <burst-size>65535</burst-size>
+    </limits>
+
+    <authentication>
+    <source-password>source_password</source-password>
+    <relay-password>your_strong_relay_password_here</relay-password>
+    <admin-user>admin</admin-user>
+    <admin-password>your_strong_admin_password_here</admin-password>
+     </authentication>
+
+     <hostname>localhost</hostname>
+    <listen-socket>
+    <port>8000</port>
+    <bind-address>0.0.0.0</bind-address>
+    </listen-socket>
+
+    <mount>
+    <mount-name>/stream</mount-name>
+    <username>source</username>
+    <password>source_password</password>
+   </mount>    
+
+    <fileserve>1</fileserve>
+    <paths>
+        <logdir>/var/log/icecast2</logdir>
+        <webroot>/usr/share/icecast2/web</webroot>
+        <adminroot>/usr/share/icecast2/admin</adminroot>
+    </paths>
+    <logging>
+        <accesslog>access.log</accesslog>
+        <errorlog>error.log</errorlog>
+        <loglevel>3</loglevel>
+    </logging>
+</icecast>

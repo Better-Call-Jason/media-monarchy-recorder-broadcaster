@@ -1,0 +1,45 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/Denver
+
+# Pre-configure icecast2
+RUN echo "icecast2 icecast2/icecast-setup boolean false" | debconf-set-selections
+
+# Install required packages
+RUN apt-get update && apt-get install -y \
+    icecast2 \
+    liquidsoap=2.0.2-1build2 \
+    cron \
+    mime-support \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create directories
+RUN mkdir -p /recordings /sorted_recordings /config /var/log/icecast2 /var/log/radio-service 
+
+# Set up liquidsoap user
+RUN usermod -s /bin/bash liquidsoap && \
+    mkdir -p /home/liquidsoap && \
+    chown liquidsoap:liquidsoap /home/liquidsoap
+
+# Copy scripts and configs
+COPY scripts/playlist-controller.sh /
+COPY scripts/service-controller.sh /
+COPY scripts/radio-crontab /etc/cron.d/radio-crontab
+
+# Set permissions
+RUN chown -R icecast2:icecast /etc/icecast2 \
+    && chown -R icecast2:icecast /var/log/icecast2 \
+    && chown -R liquidsoap:liquidsoap /recordings \
+    && chown -R liquidsoap:liquidsoap /sorted_recordings \
+    && chown -R liquidsoap:liquidsoap /config \
+    && chown -R liquidsoap:liquidsoap /var/log/radio-service \
+    && chmod 755 /var/log/radio-service \
+    && chmod +x /playlist-controller.sh \
+    && chmod +x /service-controller.sh \
+    && chmod 0644 /etc/cron.d/radio-crontab \
+    && crontab /etc/cron.d/radio-crontab
+
+EXPOSE 8000
+
+CMD ["cron", "-f"]

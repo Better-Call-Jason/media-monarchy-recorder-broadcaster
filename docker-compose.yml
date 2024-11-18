@@ -1,0 +1,35 @@
+services:
+  recorder:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.recorder
+    volumes:
+      - ./storage/recordings:/recordings
+      - radio_logs:/var/log/radio
+      - ./config:/config:ro
+    environment:
+      - TZ=America/Denver
+    user: "8000:8000"
+    restart: unless-stopped
+
+  broadcaster:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.broadcaster
+    volumes:
+      - ./storage/recordings:/recordings:ro
+      - ./storage/sorted_recordings:/sorted_recordings:rw
+      - ./storage/logs/radio-service:/var/log/radio-service:rw
+      - ./config:/config:ro
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=America/Denver
+    depends_on:
+      - recorder
+    restart: unless-stopped
+
+volumes:
+  recordings:
+  sorted_recordings:
+  radio_logs:
