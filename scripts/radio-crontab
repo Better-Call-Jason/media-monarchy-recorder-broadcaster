@@ -1,24 +1,32 @@
-# Create scripts/radio-crontab
 # Weekdays (Monday-Friday)
-# Build playlist at 4:55 PM MST (5 minutes before service start)
-55 16 * * 1-5 /playlist-controller.sh >> /var/log/radio-service/cron.log 2>&1
+# Build playlist at 5:01 PM MST (00:01 UTC)
+1 0 * * 2-6 /playlist-controller.sh >> /var/log/radio-service/cron.log 2>&1
 
-# Start services at 5 PM MST
-0 17 * * 1-5 /service-controller.sh start >> /var/log/radio-service/cron.log 2>&1
+# Start services at 5:02 PM MST (00:02 UTC)
+2 0 * * 2-6 /service-controller.sh start >> /var/log/radio-service/cron.log 2>&1
 
-# Stop services at 9 AM MST (Tuesday-Saturday)
-0 9 * * 2-6 /service-controller.sh stop >> /var/log/radio-service/cron.log 2>&1
+# Stop services at 9:00 AM MST (16:00 UTC)
+0 16 * * 2-6 /service-controller.sh stop >> /var/log/radio-service/cron.log 2>&1
 
 # Weekend schedule (Saturday-Monday)
-# Build weekly playlist at 8:55 AM Saturday
-55 8 * * 6 /playlist-controller.sh >> /var/log/radio-service/cron.log 2>&1
+# Build weekly playlist at 8:55 AM MST Saturday (15:55 UTC)
+55 15 * * 6 /playlist-controller.sh >> /var/log/radio-service/cron.log 2>&1
 
-# Start weekend service at 9 AM Saturday
-0 9 * * 6 /service-controller.sh start >> /var/log/radio-service/cron.log 2>&1
+# Start weekend service at 9:00 AM MST Saturday (16:00 UTC)
+0 16 * * 6 /service-controller.sh start >> /var/log/radio-service/cron.log 2>&1
 
-# Stop services at 9 AM Monday
-0 9 * * 1 /service-controller.sh stop >> /var/log/radio-service/cron.log 2>&1
+# Stop services at 9:00 AM MST Monday (16:00 UTC)
+0 16 * * 1 /service-controller.sh stop >> /var/log/radio-service/cron.log 2>&1
 
-# Health checks
-*/15 17-23,0-8 * * 1-5 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1
-*/15 9-23,0-8 * * 6,7 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1
+# Weekday health checks (5:02 PM - 9:00 AM MST)
+*/15 0-15 * * 2-6 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1
+
+# Weekend health checks
+# Saturday (9:00 AM - 11:59 PM MST)
+*/15 16-23 * * 6 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1
+
+# Sunday (All day)
+*/15 * * * 0 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1
+
+# Monday (12:00 AM - 9:00 AM MST)
+*/15 0-15 * * 1 /service-controller.sh status || /service-controller.sh restart >> /var/log/radio-service/cron.log 2>&1

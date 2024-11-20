@@ -11,16 +11,21 @@ RUN apt-get update && apt-get install -y \
     icecast2 \
     liquidsoap=2.0.2-1build2 \
     cron \
+    procps \
     mime-support \
+    sudo \
     && rm -rf /var/lib/apt/lists/*
 
 # Create directories
-RUN mkdir -p /recordings /sorted_recordings /config /var/log/icecast2 /var/log/radio-service 
+RUN mkdir -p /recordings /sorted_recordings /config /var/log/icecast2 /var/log/radio-service
 
-# Set up liquidsoap user
+# Set up users and sudo permissions
 RUN usermod -s /bin/bash liquidsoap && \
     mkdir -p /home/liquidsoap && \
-    chown liquidsoap:liquidsoap /home/liquidsoap
+    chown liquidsoap:liquidsoap /home/liquidsoap && \
+    echo "root ALL=(ALL:ALL) ALL" > /etc/sudoers && \
+    echo "root ALL=(icecast2,liquidsoap) NOPASSWD: /usr/bin/icecast2, /usr/bin/liquidsoap" >> /etc/sudoers && \
+    chmod 0440 /etc/sudoers
 
 # Copy scripts and configs
 COPY scripts/playlist-controller.sh /
@@ -38,7 +43,9 @@ RUN chown -R icecast2:icecast /etc/icecast2 \
     && chmod +x /playlist-controller.sh \
     && chmod +x /service-controller.sh \
     && chmod 0644 /etc/cron.d/radio-crontab \
-    && crontab /etc/cron.d/radio-crontab
+    && crontab /etc/cron.d/radio-crontab \
+    && chown -R icecast2:icecast /sorted_recordings \
+    && chmod 755 /sorted_recordings
 
 EXPOSE 8000
 

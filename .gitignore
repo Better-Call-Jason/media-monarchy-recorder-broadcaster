@@ -1,0 +1,9 @@
+# Ignore entire storage directory
+storage/
+storage/*
+storage/logs/
+storage/recordings/
+
+# Just to be extra thorough, ignore specific patterns
+storage/logs/radio-service/*.log
+storage/recordings/*

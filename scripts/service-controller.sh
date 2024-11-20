@@ -1,6 +1,7 @@
 #!/bin/bash
 
 export TZ="America/Denver"
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 LOGFILE="/var/log/radio-service/service.log"
 
 log_message() {
@@ -10,24 +11,24 @@ log_message() {
 start_services() {
     log_message "Starting radio services..."
     
-    # Start icecast2 first
-    service icecast2 start
+    # Start icecast2 first using sudo
+    /usr/bin/sudo -u icecast2 /usr/bin/icecast2 -c /etc/icecast2/icecast.xml -b
     sleep 5  # Give icecast time to fully initialize
     
     # Check if icecast2 started successfully
-    if ! pgrep icecast2 > /dev/null; then
+    if ! /usr/bin/pgrep -u icecast2 icecast2 > /dev/null; then
         log_message "ERROR: Icecast2 failed to start"
         return 1
     fi
     
-    # Start liquidsoap
-    liquidsoap /config/liquidsoap.liq &
+    # Start liquidsoap as the liquidsoap user
+    /usr/bin/sudo -u liquidsoap /usr/bin/liquidsoap /config/liquidsoap.liq &
     sleep 5  # Give liquidsoap time to initialize
     
     # Check if liquidsoap started successfully
-    if ! pgrep liquidsoap > /dev/null; then
+    if ! /usr/bin/pgrep -u liquidsoap liquidsoap > /dev/null; then
         log_message "ERROR: Liquidsoap failed to start"
-        service icecast2 stop
+        /usr/bin/pkill -u icecast2 icecast2
         return 1
     fi
     
@@ -39,18 +40,18 @@ stop_services() {
     log_message "Stopping radio services..."
     
     # Stop liquidsoap first
-    if pgrep liquidsoap > /dev/null; then
-        pkill liquidsoap
+    if /usr/bin/pgrep -u liquidsoap liquidsoap > /dev/null; then
+        /usr/bin/pkill -u liquidsoap liquidsoap
         sleep 5
     fi
     
     # Stop icecast2
-    if pgrep icecast2 > /dev/null; then
-        service icecast2 stop
+    if /usr/bin/pgrep -u icecast2 icecast2 > /dev/null; then
+        /usr/bin/pkill -u icecast2 icecast2
         sleep 5
         # If still running, force kill
-        if pgrep icecast2 > /dev/null; then
-            pkill -9 icecast2
+        if /usr/bin/pgrep -u icecast2 icecast2 > /dev/null; then
+            /usr/bin/pkill -9 -u icecast2 icecast2
             sleep 5
         fi
     fi
@@ -60,7 +61,7 @@ stop_services() {
 }
 
 check_services() {
-    if ! pgrep icecast2 > /dev/null || ! pgrep liquidsoap > /dev/null; then
+    if ! /usr/bin/pgrep -u icecast2 icecast2 > /dev/null || ! /usr/bin/pgrep -u liquidsoap liquidsoap > /dev/null; then
         return 1
     fi
     return 0

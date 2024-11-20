@@ -30,14 +30,21 @@ get_date_timestamp() {
 if [ $current_day -le 5 ]; then
     # Weekday operation
     echo "Weekday operation detected ($current_day)"
-    recording_start=$(get_today_timestamp $END_MORNING_HOUR)
-    recording_end=$(get_today_timestamp $START_AFTERNOON_HOUR)
+    # For afternoon playlist (5 PM), get today's recordings from 9 AM to 5 PM
+    current_hour=$(date +%-H)
+    if [ $current_hour -ge $START_AFTERNOON_HOUR ]; then
+        # If it's after 5 PM, get today's 9 AM to 5 PM recordings
+        recording_start=$(get_today_timestamp $END_MORNING_HOUR)
+        recording_end=$(get_today_timestamp $START_AFTERNOON_HOUR)
+    else
+        # If it's before 5 PM, get yesterday's 9 AM to 5 PM recordings
+        recording_start=$(date -d "yesterday $END_MORNING_HOUR:00:00 MST" +%s)
+        recording_end=$(date -d "yesterday $START_AFTERNOON_HOUR:00:00 MST" +%s)
+    fi
 else
-    # Weekend operation
+    # Weekend operation remains the same
     echo "Weekend operation detected ($current_day)"
-    # Calculate last Monday's date
     last_monday=$(date -d "last monday" +%Y-%m-%d)
-    # Get timestamps for the entire week
     recording_start=$(get_date_timestamp "$last_monday" $END_MORNING_HOUR)
     recording_end=$(date -d "$last_monday +4 days $START_AFTERNOON_HOUR:00:00 MST" +%s)
 fi
@@ -47,7 +54,7 @@ echo "Start: $(date -d @$recording_start) (Unix: $recording_start)"
 echo "End: $(date -d @$recording_end) (Unix: $recording_end)"
 echo "----------------------------------------"
 
-# Find matching files, sort them, then create copies
+# Rest of the script remains the same
 counter=1
 find "$RECORDINGS_DIR" -name "*.mp3" -type f | while read file; do
     timestamp=$(basename "$file" .mp3)

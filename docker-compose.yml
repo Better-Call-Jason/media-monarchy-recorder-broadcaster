@@ -21,6 +21,7 @@ services:
       - ./storage/sorted_recordings:/sorted_recordings:rw
       - ./storage/logs/radio-service:/var/log/radio-service:rw
       - ./config:/config:ro
+      - ./config/icecast.xml:/etc/icecast2/icecast.xml:ro
     ports:
       - "8000:8000"
     environment:
